@@ -92,7 +92,13 @@ To get The List of All the inserted rules
 	SAVE MYSQL QUERY RULES TO DISK;
 
 
-Step 4 (Verfication of )
+Step 4 (Verfication of Configuration)  you can run this command from another meachine as well
+
+mysql -u root_user -ppassword -h 10.10.10.1 -P6033 -e "SELECT @@hostname"
+This will print the hostname of the node which will be used for read quries
+
+mysql -u root_user -ppassword -h 10.10.10.1 -P6033 -e "SELECT @@hostname FOR UPDATE"
+This will print the name of the hostname of the node which will be used for the Write Quries
 
 
 
