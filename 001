@@ -1,0 +1,110 @@
+
+
+Setup 3 Ubuntu Servers 
+
+[ProxySql Server] 	10.10.10.1
+[SQL Node-1]		10.10.10.2
+[SQL Node-2]		10.10.10.3
+
+Step 1 (Install ProxySql Server on 10.10.10.1)
+
+#First update the server
+apt update
+
+#Add the ProxySql Repos
+wget -O - 'https://repo.proxysql.com/ProxySQL/repo_pub_key' | apt-key add - 
+echo deb https://repo.proxysql.com/ProxySQL/proxysql-2.2.x/$(lsb_release -sc)/ ./ | tee /etc/apt/sources.list.d/proxysql.list
+
+#Update the server again
+apt-get update
+
+#Installtion of ProxySQL
+apt-get install proxysql
+service proxysql start
+service proxysql status (for verfication if proxysql is installed and sucessfully running)
+
+
+Step 2 (Install mysql-server on Both Nodes 10.10.10.2/3)
+
+#Update Both servers
+apt update
+
+#Install Mysql Server on both servers
+apt install mysql-server
+
+#Follow Installtion Wizards 
+sudo mysql_secure_installtion (Follow the wizard) #Keep one thing in mind while setting up the mysql servers set same user/pass on both nodes
+service mysql status (to test mysql is sucesfully installed and running ok)
+
+#Login to Mysql Server using the credentails that you just configured in the mysql installtion wizard
+mysql -u root_user -ppassword -h 127.0.0.1
+	ALTER USER root_user IDENTIFIED WITH mysql_native_password BY 'password'; 	#changing the auth method because proxysql dont support sha2 
+
+	CREATE USER  'monitor'@'%' IDENTIFIED BY 'monitor'; 	#this user will be used by proxysql to show stats of the servers
+	GRANT USAGE,REPLICATION CLIENT on *.* TO 'monitor'@'%';
+	FLUSH PRIVILEGES;
+
+#Edit the Mysql Conf to make to work on public/private ip's so master can access the server
+nano /etc/mysql/mysql.conf.d/mysqld.cnf
+	bind-address            = 127.0.0.1 >> bind-address            = 0.0.0.0 	#Change 127.0.0.1 > 0.0.0.0 to listen on all the ifaces
+service mysql restart
+service mysql status #to verfiy mysql is up and running
+
+
+Step 3 (Configure Proxysql with the nodes Configurations will be performed on 10.10.10.1)
+
+
+
+#After installation and  making service up and creating application user, we need to configure ProxySQL
+
+In this setup, we are used using need 2 host groups
+hostgroup 0: For the master [Used for Write queries]
+hostgroup 1: For the slaves [Used for read Queries]
+
+#Acess the proxysql admin console using the following command user and pass = admin by default and  port 6032 is locally admin console port
+mysql -u admin -padmin -h 127.0.0.1 -P6032 --prompt 'ProxySQL Admin>' 
+	INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (0,'10.10.10.2',3306);
+	INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (1,'10.10.10.3',3306);
+
+#Proxysql 2.0 comes with native monitoring for Aurora, by checking the variable “Innodb_read_only”, to determine the reader/Writer for the individual nodes, This info of check has to be added to the table “mysql_replication_hostgroups” in ProxySQL
+
+	INSERT INTO mysql_replication_hostgroups values (0,1,'read_only','STG');
+	LOAD MYSQL SERVERS TO RUNTIME;
+	SAVE MYSQL SERVERS TO DISK;
+
+Note: When we load MYSQL SERVERS, Our writer host also gets configured in the reader host group automatically by ProxySQL to handle all those queries which are redirected to the reader host group in case no slaves are online.
+
+Configure Monitor User monitor user will continuously check the status of the backend in a specified interval.
+	UPDATE global_variables SET variable_value='monitor' WHERE variable_name='monitor';
+	LOAD MYSQL VARIABLES TO RUNTIME;
+	SAVE MYSQL VARIABLES TO DISK;
+	INSERT INTO mysql_users(username,password,default_hostgroup) VALUES ('root_user','password',1);
+	SELECT username,password,active,default_hostgroup,default_schema,max_connections,max_connections FROM mysql_users;	#to verfiy our created user
+	LOAD MYSQL USERS TO RUNTIME;
+	SAVE MYSQL USERS TO DISK;
+After setting up we need to define which host group should get select query and which should get write. so to do this we need to run the below commands.
+	INSERT INTO mysql_query_rules(active,match_pattern,destination_hostgroup,apply) VALUES(1,'^SELECT',1,1);
+To send  read and write queries on master  (based on Regex)
+	INSERT INTO mysql_query_rules(active,match_pattern,destination_hostgroup,apply) VALUES(1,'^SELECT.*FOR UPDATE$',0,1);
+To get The List of All the inserted rules
+	SELECT rule_id, match_pattern,destination_hostgroup hg_id, apply FROM mysql_query_rules WHERE active=1; 
+	LOAD MYSQL QUERY RULES TO RUNTIME;
+	SAVE MYSQL QUERY RULES TO DISK;
+
+
+Step 4 (Verfication of )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
