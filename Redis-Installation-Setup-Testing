@@ -1,1 +1,73 @@
+[~] Redis Installtion/Setup/Testing Ubuntu-20 Mysql-8 Redis-5
 
+[~] Update Ubuntu Meachine if any error please do resolve before starting the installtion
+      apt update
+
+[~] Add Redis Repo in the server
+      add-apt-repository ppa:chris-lea/redis-server
+
+[~] Install Redis using apt after adding the redis repo sucessfully 
+      apt-get install software-properties-common gnupg2 -y
+      apt-get install redis-server -y
+      apt-get install php-redis php-mysql -y
+      
+[~] Start and Enable Redis server
+      systemctl start redis-server
+      systemctl enable redis-server
+
+[~] Test redis installtion by following commands
+      redis-cli
+      redis-cli127.0.0.1:6379> PING
+      ^ if above command send output PONG then it means redis is sucesfully installed and running ok
+
+[~] Assuimg Apache2 and Mysql is already installed and sucesfully running on your server
+      service apache2 restart
+      service mysql restart
+
+[~] Login to mysql daemon create user and test database and insert following records
+      mysql
+      mysql> CREATE DATABASE testdb;
+      mysql> CREATE USER 'redisuser'@'localhost' IDENTIFIED WITH mysql_native_password BY 'redispassword123';
+      mysql> GRANT ALL PRIVILEGES ON testdb.* TO 'redisuser'@'localhost';
+      mysql> FLUSH PRIVILEGES;
+      mysql> use testdb;
+      mysql> CREATE TABLE student ( student_id INT AUTO_INCREMENT PRIMARY KEY, first_name VARCHAR(50), last_name  VARCHAR(50) );
+      mysql> INSERT INTO student (first_name, last_name) VALUES ('John', 'Kilvish');
+      INSERT INTO student (first_name, last_name) VALUES ('Greg', 'Thripathi');
+      INSERT INTO student (first_name, last_name) VALUES ('Ray', 'boota');
+      INSERT INTO student (first_name, last_name) VALUES ('Digvijay', 'patil');
+     
+     [~]You can now verify all data with the following command:
+      mysql> SELECT student_id, first_name, last_name from student;
+      mysql> EXIT;
+
+[~] Create simple php file at 
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+[~]
+[~]
+[~][~]
+
+[~]
+[~][~]
