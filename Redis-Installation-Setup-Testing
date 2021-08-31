@@ -42,34 +42,9 @@
       mysql> EXIT;
 
 [~] Create simple php file at /var/www/html
-      nano /var/www/html/student.php
-            
+      cd /var/www/html
+      wget https://raw.githubusercontent.com/xbeowulfx/tp1/main/demo-file-student.php -o students.php
       
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
+[~] Now please open localhost/students.php OR your-server-ip/students.php
 
-[~]
-[~]
-[~][~]
-
-[~]
-[~][~]
+[~] If any Issues please let me know or comment
