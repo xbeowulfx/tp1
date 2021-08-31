@@ -41,7 +41,9 @@
       mysql> SELECT student_id, first_name, last_name from student;
       mysql> EXIT;
 
-[~] Create simple php file at 
+[~] Create simple php file at /var/www/html
+      nano /var/www/html/student.php
+            
       
       
       
